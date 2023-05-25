@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<!--
+	NOTES:
+	1. All tokens are represented by '$' sign in the template.
+	2. You can write your code only wherever mentioned.
+	3. All occurrences of existing tokens will be replaced by their appropriate values.
+	4. Blank lines will be removed automatically.
+	5. Remove unnecessary comments before creating your template.
+-->
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="authoring-tool" content="Adobe_Animate_CC">
+<title>index</title>
+<!-- write your code here -->
+<style>
+  #animation_container, #_preload_div_ {
+	position:absolute;
+	margin:auto;
+	left:0;right:0;
+	top:0;bottom:0;
+  }
+</style>
+<script src="libs/1.0.0/createjs.min.js"></script>
+<script src="index.js?1685000803877"></script>
+<script>
+// Global Scripts
+	var answered = 0;
+var numberRange = 9;
+var systemSounds = ["correctSound", "wrongSound", "clickSound", "endSound", "Tip1", "Tip2", "PutSound", "Tip",
+	"AB1", "AB2", "AB3", "AB4", "RT1", "RT2", "RT3", "RT4", "FR1", "FR2",
+];
+/// correct and wrong sounds 
+createjs.Sound.alternateExtensions = ["mp3"];
+createjs.Sound.registerSound({id:"correctSound", src:"sounds/Correct.mp3"});
+createjs.Sound.registerSound({id:"wrongSound", src:"sounds/WrongSound.mp3"});
+createjs.Sound.registerSound({id:"wrong_01", src:"sounds/wrong/wrong_01.mp3"});
+createjs.Sound.registerSound({id:"wrong_02", src:"sounds/wrong/wrong_02.mp3"});
+createjs.Sound.registerSound({id:"wrong_03", src:"sounds/wrong/wrong_03.mp3"});
+createjs.Sound.registerSound({id:"wrong_04", src:"sounds/wrong/wrong_04.mp3"});
+createjs.Sound.registerSound({id:"correct_01", src:"sounds/correct/correct_01.mp3"});
+createjs.Sound.registerSound({id:"correct_02", src:"sounds/correct/correct_02.mp3"});
+createjs.Sound.registerSound({id:"correct_03", src:"sounds/correct/correct_03.mp3"});
+createjs.Sound.registerSound({id:"correct_04", src:"sounds/correct/correct_04.mp3"});
+createjs.Sound.registerSound({id:"correct_05", src:"sounds/correct/correct_05.mp3"});
+createjs.Sound.registerSound({id:"correct_06", src:"sounds/correct/correct_06.mp3"});
+var correctSounds = ["correct_01", "correct_02", "correct_03", "correct_04", "correct_05", "correct_06" ]
+var wrongSounds = ["wrong_01", "wrong_02", "wrong_03","wrong_04"]
+////
+function playRandomCorrect() {
+		var randomSound = getRandomRange(0, 5)
+		createjs.Sound.stop();
+		var instance = createjs.Sound.play("correctSound");
+		instance.on("complete", handleComplete);
+		function handleComplete() {
+			createjs.Sound.play(correctSounds[randomSound]);
+		}
+	}
+	function playRandomWrong() {
+		var randomSound = getRandomRange(0, 3)
+		createjs.Sound.stop();
+		var instance = createjs.Sound.play("wrongSound");
+		instance.on("complete", handleComplete);
+		function handleComplete() {
+			createjs.Sound.play(wrongSounds[randomSound]);
+		}
+	}
+var currTip = 0;
+var toolSt;
+var isdragStarted = false;
+var currHit;
+var currPos;
+var counter = 0;
+var max;
+function getRandomRange(min, max) {
+	return Math.round((Math.random() * (max - min)) + min);
+}
+function move(target, posx, posy, t, tw) {
+	var tween = createjs.Tween.get(target, {
+		loop: false
+	})
+		.to({
+			x: posx,
+			y: posy,
+		}, t, tw)
+}
+function randomObjects(objName) {
+	for (var cl = 1; cl <= 12; cl++) {
+		var rx = getRandomRange(20, 800);
+		var ry = getRandomRange(40, 560);
+		move(toolSt[objName + cl], rx, ry, 2000, createjs.Ease.cubicOut);
+	}
+}
+function startDragG(e) {
+	var n = e.currentTarget.name;	
+	var chitName = "a" + n[0].slice(1);
+	currHit = toolSt[chitName]
+	toolSt.setChildIndex(e.currentTarget, toolSt.numChildren - 1);
+	e.currentTarget.addEventListener("pressup", stopDragG);
+	var p = toolSt.globalToLocal(e.stageX, e.stageY);
+	e.currentTarget.x = p.x;
+	e.currentTarget.y = p.y;
+}
+function stopDragG(e) {
+	var n = e.currentTarget.name;
+	e.currentTarget.removeEventListener("pressup", stopDragG);
+	var pt = e.currentTarget.globalToLocal(stage.mouseX, stage.mouseY);
+	var ph = currHit.globalToLocal(stage.mouseX, stage.mouseY);
+	if (e.currentTarget.hitTest(ph.x, ph.y)) {
+		e.currentTarget.removeEventListener("pressmove", startDragG);
+		createjs.Sound.play('clickSound');		
+		var anName = "a" + n[0].slice(1);		
+		e.currentTarget.x = currHit.x;
+		e.currentTarget.y = currHit.y;
+		counter++;		
+		if (counter === max) {
+			playRandomCorrect()
+			setTimeout(function(){ toolSt.parent.gotoAndPlay(toolSt.parent.currnetFrame + 1); }, 3200);
+			counter = 0
+		}
+	}
+}</script>
+<script>
+var canvas, stage, exportRoot, anim_container, dom_overlay_container, fnStartAnimation;
+function init() {
+	canvas = document.getElementById("canvas");
+	anim_container = document.getElementById("animation_container");
+	dom_overlay_container = document.getElementById("dom_overlay_container");
+	var comp=AdobeAn.getComposition("59DE45ED79932046AF49E5A5F71EB9A9");
+	var lib=comp.getLibrary();
+	var loader = new createjs.LoadQueue(false);
+	loader.addEventListener("fileload", function(evt){handleFileLoad(evt,comp)});
+	loader.addEventListener("complete", function(evt){handleComplete(evt,comp)});
+	var lib=comp.getLibrary();
+	loader.loadManifest(lib.properties.manifest);
+}
+function handleFileLoad(evt, comp) {
+	var images=comp.getImages();	
+	if (evt && (evt.item.type == "image")) { images[evt.item.id] = evt.result; }	
+}
+function handleComplete(evt,comp) {
+	//This function is always called, irrespective of the content. You can use the variable "stage" after it is created in token create_stage.
+	var lib=comp.getLibrary();
+	var ss=comp.getSpriteSheet();
+	var queue = evt.target;
+	var ssMetadata = lib.ssMetadata;
+	for(i=0; i<ssMetadata.length; i++) {
+		ss[ssMetadata[i].name] = new createjs.SpriteSheet( {"images": [queue.getResult(ssMetadata[i].name)], "frames": ssMetadata[i].frames} )
+	}
+	var preloaderDiv = document.getElementById("_preload_div_");
+	preloaderDiv.style.display = 'none';
+	canvas.style.display = 'block';
+	exportRoot = new lib.index();
+	stage = new lib.Stage(canvas);
+	stage.enableMouseOver();	
+	//Registers the "tick" event listener.
+	fnStartAnimation = function() {
+		stage.addChild(exportRoot);
+		createjs.Ticker.framerate = lib.properties.fps;
+		createjs.Ticker.addEventListener("tick", stage);
+	}	    
+	//Code to support hidpi screens and responsive scaling.
+	AdobeAn.makeResponsive(true,'both',true,1,[canvas,preloaderDiv,anim_container,dom_overlay_container]);	
+	AdobeAn.compositionLoaded(lib.properties.id);
+	fnStartAnimation();
+}
+</script>
+<!-- write your code here -->
+</head>
+<body onload="init();" style="margin:0px;">
+	<div id="animation_container" style="background-color:rgba(255, 255, 255, 1.00); width:1000px; height:562px">
+		<canvas id="canvas" width="1000" height="562" style="position: absolute; display: none; background-color:rgba(255, 255, 255, 1.00);"></canvas>
+		<div id="dom_overlay_container" style="pointer-events:none; overflow:hidden; width:1000px; height:562px; position: absolute; left: 0px; top: 0px; display: none;">
+		</div>
+	</div>
+    <div id='_preload_div_' style='position:absolute; top:0; left:0; display: inline-block; height:562px; width: 1000px; text-align: center;'>	<span style='display: inline-block; height: 100%; vertical-align: middle;'></span>	<img src=images/_preloader.gif?1685000803877 style='vertical-align: middle; max-height: 100%'/></div>
+</body>
+</html>
